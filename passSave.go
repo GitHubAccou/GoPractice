@@ -1,25 +1,17 @@
 package main
 import (
-	"fmt"
 	"math/rand"
-	// "encoding/base64"
+	"encoding/base64"
 	"strings"
 	"io/ioutil"
 	"errors"
+	"os"
 )
 
 var cs []rune=[]rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
 func main(){
-	con:=[]byte("BBXNUTZML")
-	seed:=[]byte("Asnfls+/9FG")
-	fmt.Println("en:")
-	after:=encrypt(con,seed)
-	fmt.Println(string(after))
-
-	fmt.Println("de:")
-	
-	ori:=encrypt(after,seed)
-	fmt.Println(string(ori))
+	// encFile("替换class方法.txt","9685741236","server.xzl")
+	decFile("server.xzl","9685741236","替换class方法1111.txt")
 }
 
 //pick a Seed String
@@ -78,8 +70,6 @@ func encFile(oriFile ,password ,dstFile string)error{
 	if err:=checkPass(password);err!=nil{
 		return err
 	}	
-	//2.check if file exists
-	if
 
 	//3.give a random base64 seed
 
@@ -91,14 +81,50 @@ func encFile(oriFile ,password ,dstFile string)error{
 
 	//5.read File Contents
 	
-	ioutil.ReadAll()
+	buf,err:=ioutil.ReadFile(oriFile)
+	if err!=nil{
+		return err
+	}
 	
-	
-
+	out:=encrypt(buf,[]byte(contentEncSeed))
+	outContent:=[]byte(header)
+	outContent=append(outContent,byte('\n'))
+	outContent=append(outContent,out...)
+	if err=ioutil.WriteFile(dstFile,outContent,os.ModePerm);err!=nil{
+		return err
+	}
+	return nil
 }
 func decFile(oriFile ,password ,dstFile string)error{
+	lines,err:=readAllLines(oriFile)
+	if err!=nil{
+		return err
+	}
+	header:=lines[0]
+	headerl:=len(header)
+	seed:=header[0:32]+header[headerl-32:]
+	//4.seed enc the password
+	encoder:=base64.NewEncoding(seed)
+	dout,err1:=encoder.DecodeString(header[32:headerl-32])
+	if err1!=nil{
+		return err1
+	}
+	storePass:=string(dout)
+	if storePass!=password{
+		return errors.New("incorre password")
+	}
+	contentEncSeed:=encoder.EncodeToString([]byte(password))
+	contentLineStr:=lines[1]
+	for i:=2;i<len(lines);i++{
+		contentLineStr+="\n"+lines[i]
+	}
 
+
+	out:=encrypt([]byte(contentLineStr),[]byte(contentEncSeed))
+	if err=ioutil.WriteFile(dstFile,out,os.ModePerm);err!=nil{
+		return err
+	}
+	return nil
 }
 
-func checkFile()
 
