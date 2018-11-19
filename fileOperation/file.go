@@ -44,5 +44,7 @@ func main(){
 	// dirStr:=filepath.Dir("/s_txf\\zzz/ddd.doc")// 该方法不会检查参数代表的路径是否存在,只是做计算
 	// fmt.Println(dirStr)
 	// 4.判断字符串路径是否是绝对路径
-
+	fmt.Println(filepath.IsAbs("abc/d/x.file"))//false
+	fmt.Println(filepath.IsAbs("/abc/d/x.file"))//与平台相关
+	fmt.Println(filepath.IsAbs("C:\\f\\f1.file"))//与平台相关
 }
