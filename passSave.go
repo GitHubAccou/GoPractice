@@ -12,10 +12,10 @@ import (
 
 var cs []rune=[]rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
 func main(){
-	act:=flag.String("act","e","Encrypt File")
-	pass:=flag.String("pass","","Encrypt File")
-	sF:=flag.String("sF","","Encrypt File")
-	dF:=flag.String("dF","","Encrypt File")
+	act:=flag.String("act","e","-act=e表示加密 -act=d表示解密 默认解密")
+	pass:=flag.String("pass","","-pass 表示密码，解密会用到")
+	sF:=flag.String("sF","","-sF 源文件")
+	dF:=flag.String("dF","","-dF 处理后的文件")
 	flag.Parse()
 	// fmt.Printf("act\t:\t%s\tpass\t:\t%s\tsF\t:\t%s\tdF\t:\t%s\n",*act,*pass,*sF,*dF)
 	params:=map[string]string{"act":*act,"pass":*pass,"sF":*sF,"dF":*dF}
