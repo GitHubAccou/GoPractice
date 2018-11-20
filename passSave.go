@@ -6,12 +6,42 @@ import (
 	"io/ioutil"
 	"errors"
 	"os"
+	"fmt"
+	"flag"
 )
 
 var cs []rune=[]rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
 func main(){
-	// encFile("替换class方法.txt","9685741236","server.xzl")
-	decFile("server.xzl","9685741236","替换class方法1111.txt")
+	act:=flag.String("act","e","Encrypt File")
+	pass:=flag.String("pass","","Encrypt File")
+	sF:=flag.String("sF","","Encrypt File")
+	dF:=flag.String("dF","","Encrypt File")
+	flag.Parse()
+	// fmt.Printf("act\t:\t%s\tpass\t:\t%s\tsF\t:\t%s\tdF\t:\t%s\n",*act,*pass,*sF,*dF)
+	params:=map[string]string{"act":*act,"pass":*pass,"sF":*sF,"dF":*dF}
+	for k,v:=range params{
+		if len(v)<1{
+			fmt.Println("缺少参数:",k)
+		}
+	}
+	err:=error(nil)
+	switch(*act){
+		case "e":{
+			err=encFile(*sF,*pass,*dF)
+		}
+		case "d":{
+			err=decFile(*sF,*pass,*dF)
+		}
+		case "help":{
+			fmt.Println(`命令格式：passSave(.exe) -act=act -pass=pass -sF=sF -dF=dF`)
+		}
+		default:{
+			err=errors.New("未识别的指令 调用 -help 查看帮助")
+		}
+	}
+	if err!=nil{
+		fmt.Println(err.Error())
+	}
 }
 
 //pick a Seed String
@@ -52,7 +82,7 @@ func readAllLines(file string)(res []string, err error){
 //check password
 func checkPass(pass string)error{
 	if passlen:=len(pass);passlen<8||passlen>18{
-		return errors.New("password length must between 8 and 18")
+		return errors.New("密码长度应该在8-18之间")
 	}
 	return nil
 }
@@ -111,7 +141,7 @@ func decFile(oriFile ,password ,dstFile string)error{
 	}
 	storePass:=string(dout)
 	if storePass!=password{
-		return errors.New("incorre password")
+		return errors.New("incorrect password")
 	}
 	contentEncSeed:=encoder.EncodeToString([]byte(password))
 	contentLineStr:=lines[1]
