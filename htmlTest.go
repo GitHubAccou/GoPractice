@@ -7,7 +7,7 @@ import(
 )
 
 func main(){
-	res,err:=http.Get("https://www.pptv.com")
+	res,err:=http.Get("https://www.baidu.com")
 	defer res.Body.Close()
 	if err!=nil{
 		panic(err.Error())
@@ -19,10 +19,18 @@ func main(){
 	Echo(0,node)
 }
 func Echo(deep int,node *html.Node){
-	fmt.Println(strings.Repeat("-->",deep),node.DataAtom.String())
+	if node==nil{
+		return
+	}
+	if node.Type==html.ElementNode{
+		fmt.Println(strings.Repeat("--|",deep),node.DataAtom.String())
+	}
 	Echo(deep+1,node.FirstChild)
-	for cu,next:=node,node.NextSibling;cu.NextSibling!=nil;{
-		fmt.Println(strings.Repeat("-->",deep),next.DataAtom.String())
-		cu=next
+	for next:=node.NextSibling;next!=nil;{
+		if next.Type==html.ElementNode{
+			fmt.Println(strings.Repeat("--|",deep),next.DataAtom.String())
+			Echo(deep+1,next.FirstChild)
+		}
+		next=next.NextSibling
 	}
 }
