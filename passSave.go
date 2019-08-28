@@ -126,11 +126,21 @@ func encFile(oriFile ,password ,dstFile string)error{
 	return nil
 }
 func decFile(oriFile ,password ,dstFile string)error{
-	lines,err:=readAllLines(oriFile)
-	if err!=nil{
-		return err
+	data,err1:=ioutil.ReadFile(oriFile);
+	if err1!=nil{
+		return err1
 	}
-	header:=lines[0]
+	headerIndex:=-1;
+	for i:=0;i<85;i++{
+		if(data[i]==byte('\n')){
+			headerIndex=i;
+			break;
+		}
+	}
+	if(headerIndex==-1){
+		return errors.New("解析错误")
+	}
+	header:=string(data[:headerIndex])
 	headerl:=len(header)
 	seed:=header[0:32]+header[headerl-32:]
 	//4.seed enc the password
@@ -144,17 +154,10 @@ func decFile(oriFile ,password ,dstFile string)error{
 		return errors.New("incorrect password")
 	}
 	contentEncSeed:=encoder.EncodeToString([]byte(password))
-	contentLineStr:=lines[1]
-	for i:=2;i<len(lines);i++{
-		contentLineStr+="\n"+lines[i]
-	}
-
-
-	out:=encrypt([]byte(contentLineStr),[]byte(contentEncSeed))
-	if err=ioutil.WriteFile(dstFile,out,os.ModePerm);err!=nil{
+	contentByteArr:=data[headerIndex+1:]
+	out:=encrypt(contentByteArr,[]byte(contentEncSeed))
+	if err:=ioutil.WriteFile(dstFile,out,os.ModePerm);err!=nil{
 		return err
 	}
 	return nil
 }
-
-
