@@ -11,25 +11,44 @@ import(
 	"fmt"
 )
 func main(){
-	ctx, cancel := chromedp.NewContext(context.Background())
+	e_ctx,e_cancel:=chromedp.NewExecAllocator(context.Background(),chromedp.NoSandbox,chromedp.Headless)
+	defer e_cancel()
+	ctx,cancel:=chromedp.NewContext(e_ctx,chromedp.WithErrorf(func (x string,ops ...interface{}){
+		fmt.Println("Error:-------------------------------->")
+		fmt.Printf(x,ops)
+		fmt.Println("\n<--------------------------------------")
+	}),chromedp.WithDebugf(func (x string,ops ...interface{}){
+		for _,v:=range ops{
+			str:=fmt.Sprintf(x,v)
+			if strings.Contains(str,"www.recaptcha.net")||strings.Contains(str,`recaptcha.google.cn`)||strings.Contains(str,`www.google.com/recaptcha`){
+				fmt.Println(str)
+				fmt.Println("Warning:This site may use google's Recaptcha to stop robot,to Crwal this site you try without Headless mode.")
+			}
+		}
+	}),chromedp.WithLogf(func (x string,ops ...interface{}){
+		fmt.Println("Log:-------------------------------->")
+		fmt.Printf(x,ops)
+		fmt.Println("\n<--------------------------------------")
+	}))
 	defer cancel()
-
 	var tableStr string
 	if err := chromedp.Run(ctx,
 	    chromedp.Emulate(device.Info{"PC","",1920,1080,1.0,true,false,false}),
-	    chromedp.Navigate(`https://www.youneed.win/free-ss`),
-	    chromedp.WaitVisible(`#post-box`,chromedp.ByID),
+	    chromedp.Navigate(`https://free-ss.site`),
+	    chromedp.WaitReady(`//table[@id="tbss"]/tbody`,chromedp.BySearch),
 	    chromedp.OuterHTML(`html`,&tableStr,chromedp.BySearch),
 	); err != nil {
+		fmt.Println("访问站点出错...")
 	    panic(err)
 	}
 	reader:=strings.NewReader(tableStr)
+	fmt.Println("解析数据...")
 	tbodyNode,pErr:=html.Parse(reader)
 	if pErr!=nil{
 		fmt.Println("解析数据错误")
 		panic(pErr.Error())
 	}
-	lines:=cssSelector.Query(tbodyNode,"#post-box tbody tr")
+	lines:=cssSelector.Query(tbodyNode,"#tbss tbody tr")
 	result:=[]map[string]interface{}{}
 	for _,line:=range lines{
 		fields:=cssSelector.Query(line,"td")
@@ -43,15 +62,18 @@ func main(){
 		mp["plugin_args"]=""
 		mp["remarks"]=""
 		mp["timeout"]=5
+		fmt.Println(mp)
 		result=append(result,mp)
 	}
 	cfg:=config.Default();
-	loadErr:=config.LoadFiles("./gui-config.json")
+	loadErr:=config.LoadFiles("D:/ss/gui-config.json")
+	fmt.Println("加载配置...")
 	if loadErr!=nil{
 		fmt.Println("加载配置文件错误")
 		panic(loadErr.Error())
 	}
 	cfg.Set("configs",result,false)
-	out,_:=os.Create("./gui-config.json")
+	out,_:=os.Create("D:/ss/gui-config.json")
 	cfg.WriteTo(out)
+	fmt.Println("修改配置...")
 }
