@@ -15,46 +15,60 @@ import(
 var url="https://kyfw.12306.cn/otn/resources/login.html"
 var cpatchaURL="http://littlebigluo.qicp.net:47720"
 var buyURL="https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc"
+var stationMap map[string]string=map[string]string{"北京":"BJP","定州":"DXP"}
 var postionRes string
 func main(){
-	ctx,err:=Login("624867029@qq.com","m12306pass")
+	ctx,err:=Login("624867029@qq.com","m127906pA4")
 	if err==nil{
 		fmt.Println("登录成功,开始查询车票。。。")
-		queryAndBook(ctx,"北京","定州","2019-10-26")
+		queryAndBook(ctx,"北京","定州","2019-11-05")
 	}else{
 		fmt.Println("登录失败")
 	}
 }
 
 func queryAndBook(ctx1 context.Context,from,to,date string){
-	e_ctx,e_cancel:=chromedp.NewExecAllocator(context.Background(),chromedp.NoSandbox)
-	defer e_cancel()
-	ctx,cancel:=chromedp.NewContext(e_ctx,chromedp.WithErrorf(func (x string,ops ...interface{}){
-		fmt.Println("Error:-------------------------------->")
-		fmt.Printf(x,ops)
-		fmt.Println("\n<--------------------------------------")
-	}),chromedp.WithDebugf(func (x string,ops ...interface{}){
-		for _,v:=range ops{
-			str:=fmt.Sprintf(x,v)
-			if strings.Contains(str,"www.recaptcha.net")||strings.Contains(str,`recaptcha.google.cn`)||strings.Contains(str,`www.google.com/recaptcha`){
-				fmt.Println(str)
-				fmt.Println("Warning:This site may use google's Recaptcha to stop robot,to Crwal this site you try without Headless mode.")
-			}
-		}
-	}),chromedp.WithLogf(func (x string,ops ...interface{}){
-		fmt.Println("Log:-------------------------------->")
-		fmt.Printf(x,ops)
-		fmt.Println("\n<--------------------------------------")
-	}))
-	defer cancel()
-	err:=chromedp.Run(ctx,
-		chromedp.Navigate(buyURL),
-		chromedp.SendKeys(`input[@id="fromStationText"]`,from),
-		chromedp.SendKeys(`input[@id="toStationText"]`,to),
-		chromedp.Sleep(time.Second*300),
+	// e_ctx,e_cancel:=chromedp.NewExecAllocator(context.Background(),chromedp.NoSandbox)
+	// defer e_cancel()
+	// ctx,cancel:=chromedp.NewContext(e_ctx,chromedp.WithErrorf(func (x string,ops ...interface{}){
+	// 	fmt.Println("Error:-------------------------------->")
+	// 	fmt.Printf(x,ops)
+	// 	fmt.Println("\n<--------------------------------------")
+	// }),chromedp.WithDebugf(func (x string,ops ...interface{}){
+	// 	for _,v:=range ops{
+	// 		str:=fmt.Sprintf(x,v)
+	// 		if strings.Contains(str,"www.recaptcha.net")||strings.Contains(str,`recaptcha.google.cn`)||strings.Contains(str,`www.google.com/recaptcha`){
+	// 			fmt.Println(str)
+	// 			fmt.Println("Warning:This site may use google's Recaptcha to stop robot,to Crwal this site you try without Headless mode.")
+	// 		}
+	// 	}
+	// }),chromedp.WithLogf(func (x string,ops ...interface{}){
+	// 	fmt.Println("Log:-------------------------------->")
+	// 	fmt.Printf(x,ops)
+	// 	fmt.Println("\n<--------------------------------------")
+	// }))
+	// defer cancel()
+	var useless interface{}
+	fmt.Println(from,"\t",to,"\t",date)
+	err:=chromedp.Run(ctx1,
+		// chromedp.EvaluateAsDevTools(`$("#J-chepiao > div").show()`,&useless),
+		chromedp.EvaluateAsDevTools(`document.querySelector("#J-chepiao > div").style.display="block"`,&useless),
+		chromedp.WaitVisible(`//li[@id="J-chepiao"]//li[a="单程"]/a`,chromedp.BySearch),
+		chromedp.Sleep(time.Second*3),
+		chromedp.Click(`//li[@id="J-chepiao"]//li[a="单程"]/a`,chromedp.BySearch),
+		chromedp.WaitVisible(`//form[@id="queryLeftForm"]`,chromedp.BySearch),
+		chromedp.EvaluateAsDevTools(`document.getElementById("fromStationText").value="`+from+`"`,&useless),
+		chromedp.EvaluateAsDevTools(`document.getElementById("fromStation").value="`+stationMap[from]+`"`,&useless),
+		chromedp.EvaluateAsDevTools(`document.getElementById("toStationText").value="`+to+`"`,&useless),
+		chromedp.EvaluateAsDevTools(`document.getElementById("toStation").value="`+stationMap[to]+`"`,&useless),
+		chromedp.EvaluateAsDevTools(`document.getElementById("train_date").value="`+date+`"`,&useless),
+		chromedp.Click(`//a[@id="query_ticket"]`,chromedp.BySearch),
+		chromedp.WaitVisible(`//div[@id="t-list"]//tbody[1]//tr`,chromedp.BySearch),
+		chromedp.Sleep(time.Second*60),
 	)
 	if err!=nil{
 		fmt.Println("查询车票出错")
+		fmt.Printf("%V",err)
 		panic(err.Error())
 	}
 }
@@ -62,9 +76,9 @@ func queryAndBook(ctx1 context.Context,from,to,date string){
 
 
 func Login(user,pass string)(cxtt context.Context,err error){
-    e_ctx,e_cancel:=chromedp.NewExecAllocator(context.Background(),chromedp.NoSandbox)
-	defer e_cancel()
-	ctx,cancel:=chromedp.NewContext(e_ctx,chromedp.WithErrorf(func (x string,ops ...interface{}){
+    e_ctx,_:=chromedp.NewExecAllocator(context.Background(),chromedp.NoSandbox)
+	// defer e_cancel()
+	ctx,_:=chromedp.NewContext(e_ctx,chromedp.WithErrorf(func (x string,ops ...interface{}){
 		fmt.Println("Error:-------------------------------->")
 		fmt.Printf(x,ops)
 		fmt.Println("\n<--------------------------------------")
@@ -81,7 +95,7 @@ func Login(user,pass string)(cxtt context.Context,err error){
 		fmt.Printf(x,ops)
 		fmt.Println("\n<--------------------------------------")
 	}))
-	defer cancel()
+	// defer cancel()
 	var dataUrl string
 	var getDataUrl bool
 	var useless interface{}
@@ -99,7 +113,7 @@ func Login(user,pass string)(cxtt context.Context,err error){
 	}
 	if getDataUrl{
 		fmt.Println("下载验证码。。。")
-		file:=`E:/gitRepos/GoPractice/code.png`
+		file:=`E:\EasterGitRepositorys\GoPractice\code.png`
 		dataUrl2Img(dataUrl,file,true)
 		fmt.Println("解析验证码。。。")
 		positions:=analyseCapatcha(file)
@@ -111,6 +125,7 @@ func Login(user,pass string)(cxtt context.Context,err error){
 			chromedp.SendKeys(`//input[@id="J-password"]`,pass,chromedp.BySearch),
 			chromedp.EvaluateAsDevTools(`$("#J-passCodeCoin").append("`+codeHTML+`")`,&useless),
 			chromedp.Click(`//a[@id="J-login"]`,chromedp.BySearch),
+			chromedp.WaitVisible(`//div[@class="center-welcome"]`,chromedp.BySearch),
 		)
 		if err!=nil{
 			cxtt=ctx
