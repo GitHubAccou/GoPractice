@@ -4,11 +4,17 @@ import(
 	"github.com/chromedp/cdproto/cdp"
 	"context"
 	"fmt"
+	"strings"
 	// "io/ioutil"
 )
-var base=""
+var base=`http://www.dheaster208mail.com`
 func main(){
-	Find(`https://www.hao123.com/`,``)
+	// base=`https://www.hao123.com/`
+	base=strings.ReplaceAll(base,"easter","")
+	sub:=strings.Split(base,`mail`)
+	base=sub[0]+sub[1]
+	fmt.Println(base)
+	Find(base,``)
 }
 
 func Find(website,selector string)map[string]string{
@@ -20,7 +26,7 @@ func Find(website,selector string)map[string]string{
 	var nodes []*cdp.Node
 	err:=chromedp.Run(ctx,
 		chromedp.Navigate(website),
-		chromedp.WaitVisible(`//body`,chromedp.BySearch),
+		// chromedp.WaitVisible(`//body`,chromedp.BySearch),
 		chromedp.Nodes(`//a`,&nodes,chromedp.BySearch),
 		// chromedp.CaptureScreenshot(&imgBuf),
 	)
