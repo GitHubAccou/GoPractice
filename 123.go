@@ -28,26 +28,6 @@ func main(){
 }
 
 func queryAndBook(ctx1 context.Context,from,to,date string){
-	// e_ctx,e_cancel:=chromedp.NewExecAllocator(context.Background(),chromedp.NoSandbox)
-	// defer e_cancel()
-	// ctx,cancel:=chromedp.NewContext(e_ctx,chromedp.WithErrorf(func (x string,ops ...interface{}){
-	// 	fmt.Println("Error:-------------------------------->")
-	// 	fmt.Printf(x,ops)
-	// 	fmt.Println("\n<--------------------------------------")
-	// }),chromedp.WithDebugf(func (x string,ops ...interface{}){
-	// 	for _,v:=range ops{
-	// 		str:=fmt.Sprintf(x,v)
-	// 		if strings.Contains(str,"www.recaptcha.net")||strings.Contains(str,`recaptcha.google.cn`)||strings.Contains(str,`www.google.com/recaptcha`){
-	// 			fmt.Println(str)
-	// 			fmt.Println("Warning:This site may use google's Recaptcha to stop robot,to Crwal this site you try without Headless mode.")
-	// 		}
-	// 	}
-	// }),chromedp.WithLogf(func (x string,ops ...interface{}){
-	// 	fmt.Println("Log:-------------------------------->")
-	// 	fmt.Printf(x,ops)
-	// 	fmt.Println("\n<--------------------------------------")
-	// }))
-	// defer cancel()
 	var useless interface{}
 	fmt.Println(from,"\t",to,"\t",date)
 	err:=chromedp.Run(ctx1,
@@ -77,7 +57,6 @@ func queryAndBook(ctx1 context.Context,from,to,date string){
 
 func Login(user,pass string)(cxtt context.Context,err error){
     e_ctx,_:=chromedp.NewExecAllocator(context.Background(),chromedp.NoSandbox)
-	// defer e_cancel()
 	ctx,_:=chromedp.NewContext(e_ctx,chromedp.WithErrorf(func (x string,ops ...interface{}){
 		fmt.Println("Error:-------------------------------->")
 		fmt.Printf(x,ops)
@@ -95,7 +74,6 @@ func Login(user,pass string)(cxtt context.Context,err error){
 		fmt.Printf(x,ops)
 		fmt.Println("\n<--------------------------------------")
 	}))
-	// defer cancel()
 	var dataUrl string
 	var getDataUrl bool
 	var useless interface{}
