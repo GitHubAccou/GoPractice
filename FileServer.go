@@ -56,11 +56,6 @@ func(fileHandler HttpFileHandler)ServeHTTP(responseWriter http.ResponseWriter, r
 	reqPathUnescaped+=unescaped
 	wholePath:=fileHandler.RootDir+reqPathUnescaped
 	reqAbsPath,_:=filepath.Abs(wholePath)
-	fmt.Println("----->")
-	fmt.Println(reqPath)
-	fmt.Println(reqPathUnescaped)
-	fmt.Println(reqAbsPath)
-	fmt.Println("<-----")
 	if strings.HasPrefix(reqAbsPath,fileHandler.RootDir){
 		if isFile(reqAbsPath){
 			fileInfo,_:=os.Stat(reqAbsPath)
@@ -69,7 +64,7 @@ func(fileHandler HttpFileHandler)ServeHTTP(responseWriter http.ResponseWriter, r
 				buf:=make([]byte,1024*1024*128)
 				responseWriter.Header().Set(`Content-Type`,`application/octet-stream`)
 				responseWriter.Header().Set(`Content-Length`,strconv.Itoa(int(fileInfo.Size())))
-				responseWriter.Header().Set(`Content-Disposition`,`attachment;filename=`+url.QueryEscape(fileInfo.Name()))
+				responseWriter.Header().Set(`Content-Disposition`,`attachment;filename=`+fileInfo.Name())
 				responseWriter.Header().Set(`Content-Transfer-Encoding`,`binary`)
 				responseWriter.WriteHeader(200)
 				for ;;{
@@ -91,20 +86,23 @@ func(fileHandler HttpFileHandler)ServeHTTP(responseWriter http.ResponseWriter, r
 
 		}else if isDir(reqAbsPath){
 			dir,err:=os.Open(reqAbsPath)
-			// relative:=strings.TrimPrefix(reqAbsPath,fileHandler.RootDir)
-			// relative=strings.ReplaceAll(relative,`\`,`/`)
-			// href:=""
-			// parts:=strings.Split(relative,`/`)
-			// for i:=0;i<len(parts)-1;i++{
-			// 	href+=url.QueryEscape(parts[i])+`/`
-			// }
-			// href+=url.QueryEscape(parts[len(parts)-1])
+			relative:=strings.TrimPrefix(reqAbsPath,fileHandler.RootDir)
+			relative=strings.ReplaceAll(relative,`\`,`/`)
+			href:=""
+			parts:=strings.Split(relative,`/`)
+			for i:=0;i<len(parts)-1;i++{
+				href+=url.QueryEscape(parts[i])+`/`
+			}
+			href+=url.QueryEscape(parts[len(parts)-1])
+			if !strings.HasPrefix(href,`/`){
+				href=`/`+href
+			}
 			if err==nil{
 				names,err1:=dir.Readdirnames(-1)
 				if err1==nil{
 					content:="<table>"
 					for _,v:=range names{
-						content+=`<tr><td><a href="`+url.QueryEscape(v)+`">`+v+`</a></td></tr>`
+						content+=`<tr><td><a href="`+href+`./`+url.QueryEscape(v)+`">`+v+`</a></td></tr>`
 					}
 					content+="</table>"
 					responseWriter.Header().Set(`Content-Type`,`text/html;charset=UTF-8`)
