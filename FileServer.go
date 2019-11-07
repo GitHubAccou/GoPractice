@@ -98,11 +98,25 @@ func(fileHandler HttpFileHandler)ServeHTTP(responseWriter http.ResponseWriter, r
 				href=`/`+href
 			}
 			if err==nil{
-				names,err1:=dir.Readdirnames(-1)
+				files,err1:=dir.Readdir(-1)
 				if err1==nil{
-					content:="<table>"
-					for _,v:=range names{
-						content+=`<tr><td><a href="`+href+`./`+url.QueryEscape(v)+`">`+v+`</a></td></tr>`
+					content:="<h3>当前路径："+reqPathUnescaped+"</h3><hr/><table>"
+					if strings.HasSuffix(href,`/`){
+						for _,v:=range files{
+							if v.IsDir(){
+								content+=`<tr><td><a href="`+href+`./`+url.QueryEscape(v.Name())+`">`+v.Name()+`/</a></td></tr>`
+							}else{
+								content+=`<tr><td><a href="`+href+`./`+url.QueryEscape(v.Name())+`">`+v.Name()+`</a></td></tr>`
+							}
+						}
+					}else{
+						for _,v:=range files{
+							if v.IsDir(){
+								content+=`<tr><td><a href="`+href+`/./`+url.QueryEscape(v.Name())+`">`+v.Name()+`/</a></td></tr>`
+							}else{
+								content+=`<tr><td><a href="`+href+`/./`+url.QueryEscape(v.Name())+`">`+v.Name()+`</a></td></tr>`
+							}
+						}
 					}
 					content+="</table>"
 					responseWriter.Header().Set(`Content-Type`,`text/html;charset=UTF-8`)
@@ -111,17 +125,17 @@ func(fileHandler HttpFileHandler)ServeHTTP(responseWriter http.ResponseWriter, r
 				}else{
 					responseWriter.WriteHeader(500)
 					responseWriter.Header().Set(`Content-Type`,`text/html;charset=UTF-8`)
-					responseWriter.Write([]byte("服务器发生错误"))
+					responseWriter.Write([]byte("读取目录错误"))
 				}
 			}else{
 				responseWriter.Header().Set(`Content-Type`,`text/html;charset=UTF-8`)
 				responseWriter.WriteHeader(500)
-				responseWriter.Write([]byte("服务器发生错误"))
+				responseWriter.Write([]byte("打开目录错误"))
 			}
 		}else{
 			responseWriter.Header().Set(`Content-Type`,`text/html;charset=UTF-8`)
 			responseWriter.WriteHeader(500)
-			responseWriter.Write([]byte("服务器发生错误"))
+			responseWriter.Write([]byte("不是文件或者目录"))
 		}
 	}else{
 		responseWriter.Header().Set(`Content-Type`,`text/html;charset=UTF-8`)
